@@ -6,19 +6,30 @@ class NewsCell: UITableViewCell {
     var titleLabel = UILabel()
     var descriptionLabel = UILabel()
     var authorLabel = UILabel()
+    var imageURL: String?
     
-    
-    
+    let viewModel = NewsCellViewModel()
+
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        setupCell()
-    }
-    
-    private func setupCell() {
         setupImage()
         setupLabels()
     }
     
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        newsImageView.image = nil
+        titleLabel.text = nil
+        descriptionLabel.text = nil
+        authorLabel.text = nil
+        imageURL = nil
+        newsImageView.backgroundColor = .gray
+    }
+    
+    func getImage(with url: URL) {
+        viewModel.fetchImage(url: url)
+    }
+
     private func setupLabels() {
         setupTitleLabel()
         setupDecriptionLabel()
@@ -26,7 +37,8 @@ class NewsCell: UITableViewCell {
     }
 
     override func awakeFromNib() {
-        setupCell()
+        setupImage()
+        setupLabels()
     }
 
     private func setupImage() {
@@ -43,7 +55,23 @@ class NewsCell: UITableViewCell {
         newsImageView.layer.cornerRadius = ImageViewConstants.cornerRadius
         newsImageView.layer.masksToBounds = true
         newsImageView.contentMode = .scaleAspectFill
-        newsImageView.backgroundColor = .red
+        
+        viewModel.onImageRequest = { [weak self] status in
+            guard let self = self else { return }
+            
+            switch status {
+            case .loading:
+                print("Is loading")
+            case .ready(let image):
+                DispatchQueue.main.async {
+                    self.newsImageView.image = image
+                }
+            case .offline:
+                print("Is offline")
+            case .failed:
+                print("Request in view model failed")
+            }
+        }
     }
     
     private func setupTitleLabel() {
@@ -53,7 +81,6 @@ class NewsCell: UITableViewCell {
         titleLabel.leadingAnchor.constraint(equalTo: newsImageView.trailingAnchor, constant: TitleConstants.leftPadding).isActive = true
         titleLabel.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: TitleConstants.rightPadding).isActive = true
         titleLabel.topAnchor.constraint(equalTo: self.topAnchor, constant: TitleConstants.topPadding).isActive = true
-        titleLabel.backgroundColor = .blue
         titleLabel.text = "Title"
         titleLabel.textAlignment = .left
     }

@@ -2,7 +2,7 @@ import UIKit
 
 private let reuseIdentifier = "Cell"
 
-final class HomeViewController: UIViewController {
+final class TopHeadlinesViewController: UIViewController {
     
     let tableview = UITableView()
     var articles: [Article] = []
@@ -54,13 +54,18 @@ final class HomeViewController: UIViewController {
     }
 }
 
-extension HomeViewController: UITableViewDelegate, UITableViewDataSource {
+extension TopHeadlinesViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: reuseIdentifier, for: indexPath) as! NewsCell
         cell.titleLabel.text = articles[indexPath.row].title
         cell.descriptionLabel.text = articles[indexPath.row].description
         cell.authorLabel.text = articles[indexPath.row].author
+        if
+            let urlToImage = articles[indexPath.row].urlToImage,
+            let url = URL(string: urlToImage) {
+                cell.getImage(with: url)
+        }
         return cell
     }
     

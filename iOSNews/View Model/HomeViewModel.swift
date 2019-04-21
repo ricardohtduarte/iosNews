@@ -16,7 +16,7 @@ final class HomeViewModel {
     
     
     func fetchNews() {
-        network.getPosts(completion: { [weak self] result in
+        network.getPosts { [weak self] result in
             
             guard let self = self else {
                 print("Could not get homeViewModel self")
@@ -31,6 +31,6 @@ final class HomeViewModel {
                 print(error)
                 self.onUpdate?(.failed)
             }
-        })
+        }
     }
 }

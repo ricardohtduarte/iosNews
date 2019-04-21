@@ -1,8 +1,13 @@
 import UIKit
 
+enum Result<T> {
+    case success(T)
+    case failure(Error)
+}
+
 final class NetworkFactory {
 
-    let url = URLBuilder().urlComponents.url
+    let url = URLBuilder(path: .topHeadlines).urlComponents.url
     let urlSession = URLSession(configuration: URLSessionConfiguration.default)
     
     func getPosts(completion: @escaping ((Result<TopHeadlines>) -> Void)) {
@@ -13,7 +18,8 @@ final class NetworkFactory {
         }
         
         var request = URLRequest(url: url)
-        request.httpMethod = "GET"
+        print("Request to URL: \(url)")
+        request.httpMethod = HTTPMethod.GET
 
         let task = urlSession.dataTask(with: request) { (responseData, response, responseError) in
             DispatchQueue.main.async {
@@ -38,9 +44,32 @@ final class NetworkFactory {
         
         task.resume()
     }
+    
+    func getArticleImage(imageUrl: URL, completion: @escaping ((Result<UIImage>) -> Void)) {
+        var request = URLRequest(url: imageUrl)
+        request.httpMethod = HTTPMethod.GET
+        
+        let task = urlSession.dataTask(with: request) { (data, response, error) in
+            DispatchQueue.main.async {
+                guard
+                    let data = data,
+                    let image = UIImage(data: data) else {
+                        completion(.failure(error ?? NetworkError.invalidImageData))
+                        return
+                }
+                completion(.success(image))
+            }
+        }
+        task.resume()
+    }
 }
 
-enum Result<T> {
-    case success(T)
-    case failure(Error)
+extension NetworkFactory {
+    private enum HTTPMethod {
+        static let GET = "GET"
+    }
+    
+    private enum NetworkError: Error {
+        case invalidImageData
+    }
 }
